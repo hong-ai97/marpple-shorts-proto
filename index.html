@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마플 숏츠 프로토타입</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--or:#FF6B00;--orbg:#FFF0E5;--bk:#000;--g1:#5B5B5B;--g2:#858585;--line:#E8E8E8;--chip:#F6F6F6;--chipline:#D8D8D8;--ph:#E8E8E8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;color:#000;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+svg{display:block}
+.ell1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ell2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#app{min-height:100%}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ---------- PC GNB (기본 GNB 3단) ---------- */
+.gnb{background:#fff;border-bottom:1px solid #EFEFEF}
+.gnb .in{width:1625px;margin:0 auto}
+.gnb .util{height:40px;display:flex;align-items:center;justify-content:space-between;font-size:14px;color:var(--g1)}
+.gnb .util .l{display:flex;gap:12px;font-weight:600}.gnb .util .l span+span::before{content:"";display:inline-block;width:1px;height:10px;background:#D8D8D8;margin:0 12px 0 0;vertical-align:-1px}
+.gnb .util .r{display:flex;gap:16px;font-weight:500}
+.gnb .mast{height:80px;display:flex;align-items:center;justify-content:space-between}
+.gnb .mast .l{display:flex;align-items:center;gap:24px}
+.gnb .search{width:480px;height:40px;border:1px solid #A5A5A5;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--g1);font-size:16px;font-weight:500}
+.gnb .mast .r{display:flex;align-items:center;gap:32px}
+.gnb .menu{display:flex;gap:24px;font-size:16px;font-weight:600}.gnb .menu span{display:flex;align-items:center;gap:6px}.gnb .menu .on{color:var(--or)}
+.gnb .icons{display:flex;gap:16px}
+.gnb .cat{height:56px;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600}
+.gnb .cat .l{display:flex;gap:32px;align-items:center}.gnb .cat .l span:first-child{display:flex;gap:8px;align-items:center}
+.gnb .cat .r{display:flex;gap:12px;align-items:center}.gnb .cat .r i{width:1px;height:19px;background:#EFEFEF}
+
+/* ---------- PC 목록 ---------- */
+.pc-body{width:1625px;margin:0 auto;padding:28px 0 160px}
+.pc-head{display:flex;flex-direction:column;gap:16px}
+.pc-head h1{margin:0;font-size:24px;font-weight:600;line-height:1.2}
+.chips{display:flex;gap:8px;overflow-x:auto;position:relative}
+.chip{flex:none;height:44px;padding:10px 20px 10px 18px;border-radius:999px;background:var(--chip);display:flex;align-items:center;gap:6px;font-size:16px;font-weight:500;color:#000;white-space:nowrap}
+.chip.on{background:#000;color:#fff;font-weight:700}
+/* 이모지는 Figma(1em=16px)보다 브라우저가 넓게 그리므로 칸을 고정 */
+.chip span{flex:none;width:16px;display:flex;justify-content:center;font-size:15px;line-height:1}
+.mo-body .chip span{width:13px;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:48px 12px;margin-top:28px}
+.card{display:flex;flex-direction:column;gap:16px;cursor:pointer}
+.thumb{position:relative;border-radius:12px;overflow:hidden;background:var(--ph);aspect-ratio:315/473}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .prev{position:absolute;inset:0;opacity:0;transition:opacity .25s;overflow:hidden;background:#000}
+.thumb .prev.show{opacity:1}
+/* 16:9 플레이어를 카드보다 크게 키워 가운데 세로 영상만 보이게(cover). 좌우 검은 띠와 유튜브 제목/로고/진행바가 잘린 영역 밖으로 나간다 */
+.thumb .prev iframe{position:absolute;left:50%;top:50%;width:340%;height:auto;aspect-ratio:16/9;transform:translate(-50%,-50%);border:0;pointer-events:none}
+.thumb .cap{position:absolute;inset:0}
+.badge{position:absolute;left:16px;top:16px;height:26px;padding:0 12px;border-radius:4px;background:var(--orbg);color:var(--or);font-size:13px;font-weight:700;display:flex;align-items:center}
+/* 스켈레톤 (추가 로드 중) */
+.skel .thumb,.skel .line,.skel .pimg{background:#F2F2F2;position:relative;overflow:hidden}
+.skel .thumb::after,.skel .line::after,.skel .pimg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,0) 0,rgba(255,255,255,.7) 50%,rgba(255,255,255,0) 100%);transform:translateX(-100%);animation:shimmer 1.3s infinite}
+@keyframes shimmer{to{transform:translateX(100%)}}
+.skel .line{height:20px;border-radius:4px;width:72%}
+.skel .ptile .line{height:14px;width:60%}.skel .ptile .line+.line{width:36%;margin-top:8px}
+.sentinel{height:1px}
+@media (prefers-reduced-motion:reduce){.skel .thumb::after,.skel .line::after,.skel .pimg::after{animation:none}}
+.play{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:999px;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.card .info{display:flex;flex-direction:column;gap:12px;padding:0 8px}
+.card .title{font-size:20px;font-weight:600;line-height:1.5}
+.ptile{display:flex;align-items:center;gap:10px;min-width:0}
+/* 사진 배경(흰색/연회색)이 제각각이라, 타일 회색보다 밝은 부분은 타일 색으로 눌러 톤을 통일 */
+.ptile .pimg{width:60px;height:60px;border-radius:8px;background:var(--ph);overflow:hidden;flex:none}.ptile .pimg img{width:100%;height:100%;object-fit:cover}
+.ptile .pimg img[src*="/p_"]{object-fit:contain;mix-blend-mode:darken}
+.ptile .pt{display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1;min-width:0}.ptile .pt b{font-weight:700}
+.grid{grid-template-columns:repeat(5,minmax(0,1fr))}.card{min-width:0}
+
+/* ---------- PC 뷰어 모달 ---------- */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;display:flex;align-items:center;justify-content:center}
+.mwrap{position:relative;height:min(980px,calc(100vh - 100px))}
+.modal{height:100%;display:flex;border-radius:16px;overflow:hidden;background:#fff}
+.vcol{height:100%;aspect-ratio:552/980;background:#000;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain}
+.slide{height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;background:#000}
+.slide .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.6)}
+.slide .mount{position:absolute;inset:0}.slide .mount iframe{width:100%;height:100%;border:0}
+.panel{width:400px;height:100%;display:flex;flex-direction:column;background:#fff}
+.panel .hd{height:48px;flex:none;display:flex;justify-content:flex-end;align-items:flex-start;gap:12px;padding:24px 24px 0}
+.panel .bd{flex:1;overflow-y:auto;padding:8px 24px 40px;display:flex;flex-direction:column;gap:48px}
+.badges{display:flex;gap:2px}
+.bd .badges .b{height:26px;padding:0 12px;border-radius:4px;font-size:13px;font-weight:700;display:flex;align-items:center}
+.b.hot{background:var(--orbg);color:var(--or)}
+.b.tag{background:#EFEFEF;color:#000}
+.vtitle{font-size:20px;font-weight:600;line-height:1.5;margin-top:8px}
+.sec h3{margin:0 0 16px;font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.sec h3 .more{font-size:12px;font-weight:500;color:var(--g2);display:flex;align-items:center;gap:2px}
+.prow{display:flex;align-items:center;gap:14px}
+.prow .pimg{flex:none;width:72px;height:90px;border-radius:6px;background:var(--ph);overflow:hidden}.prow .pimg.s{width:56px;height:70px;border-radius:4px}
+.prow .pimg img{width:100%;height:100%;object-fit:cover}
+.prow .pt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.prow .nm{font-size:14px;font-weight:500;line-height:1.5}.prow .pr{font-size:14px;font-weight:700;line-height:1.5}
+.prow.main .nm,.prow.main .pr,.plist.big .nm,.plist.big .pr{font-size:15px}
+.rate{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:var(--g2);line-height:1.5}.rate b{color:var(--or);font-weight:500}
+.cta{margin-top:16px;height:36px;width:100%;border-radius:6px;background:var(--or);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.plist{display:flex;flex-direction:column;gap:10px}
+.sheet .rate{font-size:12px}.sheet .cta{font-weight:600}.sheet .sec h3 .more{font-size:14px}
+/* 등록 상품이 없는 카드: 인기상품을 노출하되 가격 대신 "더 보러가기"로 구분 */
+.ptile.pop .pt{gap:8px}
+.ptile.pop .more{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:700;color:var(--g1);line-height:1}
+.mcard .ptile.pop .pt{gap:0}.mcard .ptile.pop .more{font-size:13px;line-height:20px}.mcard .ptile.pop .more svg{width:12px;height:12px}
+.nav{position:absolute;right:-72px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}
+.nav button{width:44px;height:44px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center}
+.nav button[disabled]{opacity:.35;cursor:default}
+
+/* ---------- 메인 ---------- */
+.main-canvas{position:relative;margin:0 auto}
+.mimg{background-repeat:no-repeat}
+.main-sec{width:1625px;margin:0 auto;padding:0;height:636px;display:flex;flex-direction:column;gap:16px}
+.main-sec .th{display:flex;justify-content:space-between;align-items:center}
+.main-sec .th h2{margin:0;font-size:24px;font-weight:600;line-height:1.2}
+.main-sec .th a{font-size:16px;font-weight:500;display:flex;align-items:center;gap:2px}
+.main-sec .row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+
+/* ---------- MO 공통 ---------- */
+.mo-bar{height:64px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;background:#fff;position:sticky;top:0;z-index:5}
+.mo-bar .l,.mo-bar .r{display:flex;gap:8px;align-items:center;width:110px}.mo-bar .r{justify-content:flex-end;gap:12px}
+.mo-bar .t{font-size:18px;font-weight:500}
+
+/* ---------- MO 목록 ---------- */
+.mo-body{padding:12px 0 80px}
+.mo-body .chips{padding:0 20px}
+.mo-body .chip{height:36px;padding:6px 14px 6px 12px;font-size:13px}
+.mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 8px;padding:16px 20px 0}
+.mcard{display:flex;flex-direction:column;gap:8px;cursor:pointer;min-width:0}
+.mcard .thumb{aspect-ratio:164/245}
+.mcard .badge{left:10px;top:10px;height:24px;padding:0 8px;font-size:12px}
+.mcard .play{right:10px;top:10px;width:24px;height:24px;background:rgba(0,0,0,.6)}
+.mcard .info{display:flex;flex-direction:column;gap:8px}
+.mcard .title{padding:0 4px;font-size:14px;font-weight:500;line-height:1.5}
+.mcard .ptile{padding:0 4px;gap:8px}.mcard .ptile .pimg{width:44px;height:44px;border-radius:4px}
+.mcard .ptile .pt{gap:0;font-size:13px;line-height:20px;color:var(--g1)}
+
+/* ---------- MO 뷰어 ---------- */
+.mv{height:100dvh;display:flex;flex-direction:column;background:#fff}
+.mv .mo-bar{position:static;flex:none}
+.msnap{flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain}
+/* Figma MO 뷰어: 제목 블록(44) + 영상 영역(flex) + 상품 스트립(86). 영상은 영상 영역 안에서만 꽉 채움(상하 크롭) */
+.mslide{height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;background:#fff}
+.mtb{flex:none;padding:10px 16px;display:flex;align-items:center;gap:10px;height:44px}
+.mtb .badges .b{height:24px;padding:0 8px;font-size:12px;font-weight:600;border-radius:4px;display:flex;align-items:center}
+.mtb .vt{flex:1;min-width:0;font-size:15px;font-weight:600}
+.mvideo{flex:1;min-height:0;position:relative;background:#000;overflow:hidden}
+/* 모바일: 플레이어를 정확히 9:16으로 두어 유튜브 UI를 전혀 자르지 않고(좌우 여백도 유튜브 고유값),
+   영역이 9:16보다 넓어 남는 양옆 공간은 검은색 대신 썸네일을 흐리게 깔아 채운다 */
+.mvideo .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.4);filter:blur(22px) brightness(1.05) saturate(1.15)}
+.mvideo .mount{position:absolute;inset:0}
+.mvideo .mount iframe{position:absolute;top:0;left:50%;height:100%;width:auto;aspect-ratio:9/16;max-width:100%;transform:translateX(-50%);border:0}
+.strip{flex:none;height:86px;position:relative;display:flex;align-items:center;background:#fff}
+.strip .sc{display:flex;gap:8px;overflow-x:auto;padding:12px 56px 12px 16px;align-items:center;height:100%}
+.pcard{flex:none;width:264px;height:62px;border:1px solid var(--line);border-radius:4px;display:flex;align-items:center;gap:16px;padding-right:12px;background:#fff}
+.pcard .pimg{width:48px;height:60px;overflow:hidden;flex:none;border-radius:3px 0 0 3px;background:var(--ph)}.pcard .pimg img{width:100%;height:100%;object-fit:cover}
+.pcard .pt{min-width:0;font-size:13px;line-height:20px}.pcard .pt b{display:block;font-weight:700}
+.strip .open{position:absolute;right:0;top:0;bottom:0;width:56px;padding:0 16px 0 20px;display:flex;align-items:center;justify-content:flex-end;background:linear-gradient(90deg,rgba(255,255,255,0) 0,#fff 31%)}
+.strip .open i{width:20px;height:20px;border-radius:999px;background:#fff;border:1px solid #E5E5E5;display:flex;align-items:center;justify-content:center}
+/* 코치마크 */
+.coach{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:6;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff}
+.coach .in{display:flex;flex-direction:column;align-items:center;gap:20px;width:192px}
+.coach .hand{width:120px;height:168px}
+.coach p{margin:0;font-size:20px;font-weight:600;line-height:1.5}.coach p em{font-style:normal;color:var(--or)}
+.coach button{height:36px;padding:0 20px;border-radius:999px;background:rgba(255,255,255,.3);color:#fff;font-size:14px;font-weight:500}
+/* 바텀시트 */
+.dim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20}
+/* 높이는 내용만큼(하단 여백 24). 화면의 80%를 넘으면 80%로 고정하고 내부 스크롤 */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:80%;background:#fff;border-radius:16px 16px 0 0;z-index:21;display:flex;flex-direction:column;padding:8px 16px calc(24px + env(safe-area-inset-bottom,0px));transform:translateY(100%);animation:up .25s ease-out forwards}
+@keyframes up{to{transform:none}}
+.sheet .hdl{width:36px;height:4px;border-radius:999px;background:#D8D8D8;margin:0 auto 16px;flex:none}
+.sheet .bd{flex:0 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:32px}
+/* 바텀시트 내부: Figma 값(섹션 제목→목록 12, 행 간격 8, 썸네일 64×80, CTA 36/r4) */
+.sheet .sec h3{margin-bottom:12px}
+.sheet .prow{gap:16px}.sheet .prow .pimg,.sheet .prow .pimg.s{width:64px;height:80px;border-radius:4px}
+.sheet .prow .pt{gap:0}.sheet .prow .nm,.sheet .prow .pr{font-size:14px}.sheet .rate{margin-top:4px}
+.sheet .plist{gap:8px}.sheet .cta{margin-top:8px;border-radius:4px}
+.sheet .sec h3 .more svg{width:16px;height:16px}
+
+/* 프로토 네비 */
+.devnav{position:fixed;left:12px;bottom:12px;z-index:99;display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);font-size:12px;color:#fff}
+.devnav a{padding:6px 10px;border-radius:999px}.devnav a.on{background:#fff;color:#000;font-weight:700}
+@media (max-width:767px){.devnav{left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom))}body:has(.mv) .devnav{bottom:calc(118px + env(safe-area-inset-bottom,0px))}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="devnav" id="devnav"></nav>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+/* ===================== 데이터 ===================== */
+const TAGS=[["전체","👀"],["가족·반려동물","❤️"],["커플·우정","👩‍❤️‍👨"],["스포츠","⚾️"],["여행","✈️"],["덕질","🔥"],["단체·기업","🏢"],["선물","🎁"]];
+const PRODUCTS={
+  card_grey:{name:"비캔버스 피그먼트 오버핏 티셔츠",price:7900,img:"assets/c_tee.png",rating:4.5,reviews:3272},
+  card_blue:{name:"비캔버스 피그먼트 오버핏 티셔츠",price:13000,img:"assets/c_tee.png",rating:4.5,reviews:1068},
+  tee_yellow:{name:"17수 라운드 티셔츠(남여공용)",price:7900,img:"assets/p_tee_yellow.png",rating:4.5,reviews:3272},
+  tee_white:{name:"2000 오리지널 티셔츠",price:9000,img:"assets/p_tee_white.png",rating:4.5,reviews:3931},
+  hoodie_navy:{name:"데일리 오버핏 2WAY 후드집업",price:33500,img:"assets/p_hoodie_navy.png",rating:4.5,reviews:2000},
+  tee_grey:{name:"스판텍스 라운드 티셔츠(남여공용)",price:9000,img:"assets/p_tee_grey.png",rating:4.5,reviews:1068},
+};
+const POPULAR=["tee_white","hoodie_navy","tee_grey","hoodie_navy"];
+const POPULAR_NOPROD=["tee_white","hoodie_navy","tee_yellow","tee_grey"];
+// 영상 속 상품은 0개 또는 1개 (product:null = 없음)
+const V=(id,title,tags,product,hot)=>({id,title,tags,product,hot:!!hot});
+const VIDEOS=[
+  V("tXgOdJe-fao","친구랑 랜덤 옷 교환하기ㅋㅋ",["커플·우정"],"card_blue",1),
+  V("CmHoL2Q8UL8","ENTJ 누나의 동생 선물 🎁",["선물","가족·반려동물"],"tee_yellow",1),
+  V("2e-N8GRmBM4","신혼집 꾸미는 방법 🏠",["커플·우정"],"card_grey"),
+  V("Il2OP9a9T60","복면 쓰고 사장님 놀래키기💥",["단체·기업"],"card_blue"),
+  V("QphcWQHLi38","커스텀 커플티 만드는 법 🩶",["커플·우정"],"card_grey"),
+  V("4t7-mWfmxq8","남친을 위한 깜짝 선물🩷",["선물","커플·우정"],"tee_white"),
+  V("K9n4giy7ANY","언니 자는 얼굴로 티셔츠🤭",["가족·반려동물"],null),
+  V("PNSOH5y4c5w","변호사 사위 자랑하는 법ㅋㅋ",["가족·반려동물"],"hoodie_navy"),
+  V("QKpj2X2M6zo","82세 할머니의 힙한 티셔츠 🕶️",["가족·반려동물"],"tee_grey"),
+  V("YMXpagYVWNM","우리 고양이가 티셔츠에..? 🐈‍⬛",["가족·반려동물"],"card_grey"),
+  V("3RjmNeDYlW4","일본 여행 티셔츠 랜덤 뽑기 🍣",["여행"],null),
+  V("yByioqoIZig","직원 사원증 만들었어요! ☕",["단체·기업"],"tee_white"),
+  V("Hdem1KwcpDQ","술 마시러 가는 남친 선물ㅋㅋ",["선물","커플·우정"],"card_blue"),
+  V("tQvmT4YMrRg","야구 직관템 준비했어요 ⚾️",["스포츠"],"hoodie_navy"),
+  V("f3rft9a2FfE","야구장 필수 장착템 ⚾️",["스포츠","덕질"],null),
+  V("n9l9LWU6idU","센스 있는 선물하는 법 🎁",["선물"],"tee_yellow"),
+  V("u7FSe8JKB9g","20년 지기 우정티 만들기🤭",["커플·우정"],"card_grey"),
+  V("D9s-Kep-kV8","제주도 여행 커플티 ✈️",["여행","커플·우정"],"tee_grey"),
+  V("3MHuwgoqEkU","동기들 반응 터진 단체티 😂",["단체·기업"],"card_blue"),
+  V("1QtAJ9lIzL8","응원력 120% 올리는 법 ⚾",["스포츠","덕질"],"tee_white"),
+  V("OzOTkWX30Ns","1주년 기념품 만들기 🎁",["덕질","선물"],"tee_yellow"),
+  V("VkUB4KDEBQo","여행지 생존 남편의 자세 ✈️",["여행"],null),
+  V("k5n0f0CmQwI","커플여행 인생샷 남기기 📸",["여행","커플·우정"],"card_grey"),
+  V("eWaPEi4hbgA","친구 사진으로 우정티 😂",["커플·우정"],"card_blue"),
+  V("lQqUxn7pkT4","커플티에 남친 반응ㅋㅋ 💕",["커플·우정"],"tee_yellow"),
+];
+const PAGE=10, MAX_ITEMS=60; // 목록 자동 로드: 10개씩, 최대 60개(데모용 순환)
+const thumbUrl=id=>`https://i.ytimg.com/vi/${id}/oar2.jpg`;
+const thumbFallback=`onerror="this.onerror=null;this.src=this.src.replace('oar2','hq720')"`;
+const won=n=>n.toLocaleString("ko-KR")+"원";
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ===================== 아이콘 (Figma에서 추출) ===================== */
+const I={
+ logo:`<svg width="170" height="20" viewBox="0 0 170 20" fill="none"><path d="M46.05 15.5222L39.44 0H35.2L30.25 11.6042L28.59 15.5122L28.34 16.082L26.68 19.99H30.92L32.58 16.082L32.83 15.5122H41.81L42.06 16.082L43.72 19.99H47.96L46.3 16.082L46.05 15.5122V15.5222ZM34.49 11.6242L37.31 4.98751L40.14 11.6242H34.48H34.49Z" fill="black"/><path d="M134.36 0H130.05V19.99H144.58V16.082H134.36V0Z" fill="black"/><path d="M10.01 8.45577L4.32 0H0V19.99H4.32V7.62619L9.63 15.5122L10.01 16.082L10.39 15.5122L15.7 7.62619V19.99H20.01V0H15.7L10.01 8.45577Z" fill="black"/><path d="M69.28 16.062L68.89 15.4923L67.85 13.983L67.38 13.2934C68.79 12.6137 69.93 11.4843 70.62 10.085C71.08 9.15542 71.34 8.10595 71.34 6.9965C71.34 5.88706 71.08 4.83758 70.62 3.90805C69.87 2.38881 68.59 1.18941 67.02 0.53973C66.19 0.1999 65.29 0.009995 64.34 0.009995H54.65V20H58.97V14.003H62.93L67.02 19.99H71.95L71.34 19.1104L69.28 16.082H69.29L69.28 16.062ZM58.96 3.86807H63.93C65.64 3.86807 67.02 5.25737 67.02 6.95652C67.02 8.65567 65.63 10.045 63.93 10.045H58.96V3.86807Z" fill="black"/><path d="M93.02 0.529735C92.19 0.189905 91.29 0 90.33 0H80.64V19.99H84.96V13.993H90.33C91.28 13.993 92.19 13.8031 93.02 13.4633C94.59 12.8136 95.87 11.6042 96.62 10.095C97.08 9.16542 97.34 8.11594 97.34 7.0065C97.34 5.89705 97.08 4.84758 96.62 3.91804C95.87 2.3988 94.59 1.1994 93.02 0.549725H93.03L93.02 0.529735ZM89.93 10.075H84.96V3.89805H89.93C91.63 3.89805 93.02 5.28736 93.02 6.98651C93.02 8.68566 91.63 10.075 89.93 10.075Z" fill="black"/><path d="M118.41 0.529735C117.59 0.189905 116.68 0 115.73 0H106.04V19.99H110.36V13.993H115.74C116.69 13.993 117.6 13.8031 118.42 13.4633C119.99 12.8136 121.26 11.6042 122.02 10.095C122.48 9.16542 122.74 8.11594 122.74 7.0065C122.74 5.89705 122.48 4.84758 122.02 3.91804C121.27 2.3988 120 1.1994 118.42 0.549725L118.41 0.529735ZM115.32 10.075H110.35V3.89805H115.32C117.03 3.89805 118.41 5.28736 118.41 6.98651C118.41 8.68566 117.02 10.075 115.32 10.075Z" fill="black"/><path d="M155.48 0V7.83608H148.95V12.1439H155.48V19.99H170V16.072H159.79V12.1439H166.1V7.83608H159.79V3.91804H170V0H155.48Z" fill="black"/></svg>`,
+ search:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M18.0186 17.8571L13.0186 12.8571C14.1348 11.7007 14.8215 10.127 14.8215 8.3928C14.8215 4.8424 11.9433 1.96423 8.39293 1.96423C4.84252 1.96423 1.96436 4.8424 1.96436 8.3928C1.96436 11.9432 4.84252 14.8214 8.39293 14.8214C8.94787 14.8214 9.4864 14.7511 10.0001 14.6188" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ search24:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.6225 21.4286L15.6225 15.4286C16.962 14.041 17.786 12.1525 17.786 10.0715C17.786 5.81098 14.3322 2.35718 10.0717 2.35718C5.81122 2.35718 2.35742 5.81098 2.35742 10.0715C2.35742 14.3319 5.81122 17.7857 10.0717 17.7857C10.7376 17.7857 11.3839 17.7014 12.0003 17.5427" stroke="black" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+ shorts:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5.2 4.59998H11.4C12.8667 4.59998 13.6 5.33331 13.6 6.79998V15.6C13.6 17.0666 12.8667 17.8 11.4 17.8H5.2C3.73333 17.8 3 17.0666 3 15.6V6.79998C3 5.33331 3.73333 4.59998 5.2 4.59998Z" stroke="#FF6B00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.3999 2.19995H14.7999C16.2666 2.19995 16.9999 2.93328 16.9999 4.39995V14.6" stroke="#FF6B00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.8999 8.90002L10.6999 11.2L6.8999 13.5V8.90002Z" stroke="#FF6B00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ tmpl:`<svg width="20" height="20" viewBox="0 0 15 15" fill="none"><path d="M6.0323 14.0926H2.87193C0.940951 14.0926 -0.142485 11.8689 1.04759 10.3483L5.06705 5.21231V0.579102H8.15585V5.21231L8.92805 6.08103" stroke="black" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.10156 0.5H9.12109" stroke="black"/><path d="M14.3333 10.1428C14.3333 12.4308 10.4723 14.2856 10.4723 14.2856C10.4723 14.2856 6.61133 12.4308 6.61133 10.1428C6.61133 8.06062 9.00953 7.19478 10.1685 9.39778C10.2828 9.61505 10.6619 9.61505 10.7762 9.39779C11.9352 7.19493 14.3333 8.06063 14.3333 10.1428Z" stroke="black" stroke-width="1.1" stroke-linejoin="round"/></svg>`,
+ howto:`<svg width="20" height="20" viewBox="0 0 17 16" fill="none"><path d="M7.68343 11.85H4.45426H2.93343C1.97614 11.85 1.2001 11.0739 1.2001 10.1166V2.93331C1.2001 1.97602 1.97614 1.19998 2.93343 1.19998H4.45426M12.1626 1.19998H13.6834C14.6407 1.19998 15.4168 1.97602 15.4168 2.93331V9.51664" stroke="black" stroke-width="1.2" stroke-linecap="round"/><path d="M16.0167 8.30835V9.51668C16.0167 10.8053 14.972 11.85 13.6833 11.85H12.2667L8.93335 15.1833" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ review:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="black" stroke-width="1.3"/><circle cx="10" cy="11" r="3" stroke="black" stroke-width="1.3"/><path d="M7 5l1-2h4l1 2" stroke="black" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
+ heart:`<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 23.5L5.03774 14.6469C4.80627 14.4509 4.5922 14.2376 4.39479 14.008C3.93221 13.4713 3.5674 12.8491 3.32666 12.1676C3.11481 11.5691 3 10.9269 3 10.2573C3 7.08292 5.58181 4.5 8.75694 4.5C11.085 4.5 13.0946 5.89072 13.9998 7.88439C14.9054 5.89072 16.9146 4.5 19.2438 4.5C22.4174 4.5 25 7.08292 25 10.2573C25 10.9421 24.8796 11.5995 24.6596 12.2091C24.3696 13.0102 23.9071 13.7284 23.3167 14.3198L17.25 20.39" stroke="black" stroke-width="1.28571" stroke-linecap="round"/></svg>`,
+ heart20:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10.0002 16.7857L3.5986 10.462C3.43326 10.3221 3.28035 10.1697 3.13935 10.0057C2.80893 9.62233 2.54835 9.17789 2.3764 8.69113C2.22508 8.26362 2.14307 7.8049 2.14307 7.3266C2.14307 5.05918 3.98722 3.21423 6.25517 3.21423C7.9181 3.21423 9.35353 4.2076 10.0001 5.63165C10.6469 4.2076 12.0821 3.21423 13.7458 3.21423C16.0127 3.21423 17.8574 5.05918 17.8574 7.3266C17.8574 7.81574 17.7714 8.28531 17.6142 8.72075C17.4071 9.29297 17.0767 9.80592 16.655 10.2284L12.3216 14.5642" stroke="black" stroke-width="1.25" stroke-linecap="round"/></svg>`,
+ cart:`<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M18.5 8H21C22.1046 8 23 8.89543 23 10V23C23 24.1046 22.1046 25 21 25H20.75H18.5H14H7C5.89543 25 5 24.1046 5 23V10C5 8.89543 5.89543 8 7 8H9H14" stroke="black" stroke-width="1.29" stroke-linecap="round"/><path d="M18.5 8V7.5C18.5 5.01472 16.4853 3 14 3C11.5147 3 9.5 5.01472 9.5 7.5V8" stroke="black" stroke-width="1.29" stroke-linecap="round"/></svg>`,
+ cart26:`<svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M17.1788 7.42859H19.5002C20.5259 7.42859 21.3574 8.26006 21.3574 9.28573V21.2143C21.3574 22.3189 20.4619 23.2143 19.3574 23.2143H6.64307C5.5385 23.2143 4.64307 22.3189 4.64307 21.2143V9.42859C4.64307 8.32402 5.5385 7.42859 6.64307 7.42859H8.35735H13.0002" stroke="black" stroke-width="1.5" stroke-linecap="round"/><path d="M17.1784 7.42862V6.96434C17.1784 4.65658 15.3076 2.78577 12.9999 2.78577C10.6921 2.78577 8.82129 4.65658 8.82129 6.96434V7.42862" stroke="black" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+ my:`<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M23 24.25V19.6786C23 17.785 21.465 16.25 19.5714 16.25H8.42857C6.53502 16.25 5 17.785 5 19.6786V24.25" stroke="black" stroke-width="1.28571" stroke-linecap="round"/><circle cx="14" cy="8" r="4.35714" stroke="black" stroke-width="1.28571"/></svg>`,
+ menu:`<svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect width="17.1429" height="1.07143" rx="0.535714" fill="black"/><rect y="5.35718" width="17.1429" height="1.07143" rx="0.535714" fill="black"/><rect y="10.7142" width="17.1429" height="1.07143" rx="0.535714" fill="black"/></svg>`,
+ menu24:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="black" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+ back:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M16 3L7 12L16 21" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ share:`<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M16.8931 13.5538C15.8005 13.5538 14.8378 14.0884 14.2282 14.9019L8.29668 11.9361C8.38472 11.6372 8.44664 11.3273 8.44664 11.0002C8.44664 10.6731 8.38472 10.3632 8.29668 10.0643L14.2282 7.09849C14.8378 7.91197 15.8005 8.44664 16.8931 8.44664C18.7346 8.44664 20.2324 6.94887 20.2324 5.10735C20.2324 3.26583 18.7346 1.76807 16.8931 1.76807C15.0515 1.76807 13.5538 3.26583 13.5538 5.10735C13.5538 5.43446 13.6157 5.74435 13.7037 6.04326L7.77218 9.00907C7.16261 8.19559 6.19993 7.66092 5.10735 7.66092C3.26583 7.66092 1.76807 9.15869 1.76807 11.0002C1.76807 12.8417 3.26583 14.3395 5.10735 14.3395C6.19993 14.3395 7.16261 13.8048 7.77218 12.9914L13.7037 15.9572C13.6157 16.2561 13.5538 16.566 13.5538 16.8931C13.5538 18.7346 15.0515 20.2324 16.8931 20.2324C18.7346 20.2324 20.2324 18.7346 20.2324 16.8931C20.2324 15.0515 18.7346 13.5538 16.8931 13.5538ZM14.7324 5.10735C14.7324 3.91574 15.7015 2.94664 16.8931 2.94664C18.0847 2.94664 19.0538 3.91574 19.0538 5.10735C19.0538 6.29897 18.0847 7.26807 16.8931 7.26807C15.7015 7.26807 14.7324 6.29897 14.7324 5.10735ZM5.10735 13.1609C3.91574 13.1609 2.94664 12.1918 2.94664 11.0002C2.94664 9.80859 3.91574 8.83949 5.10735 8.83949C6.29897 8.83949 7.26807 9.80859 7.26807 11.0002C7.26807 12.1918 6.29897 13.1609 5.10735 13.1609ZM16.8931 19.0538C15.7015 19.0538 14.7324 18.0847 14.7324 16.8931C14.7324 15.7015 15.7015 14.7324 16.8931 14.7324C18.0847 14.7324 19.0538 15.7015 19.0538 16.8931C19.0538 18.0847 18.0847 19.0538 16.8931 19.0538Z" fill="black" stroke="black" stroke-width="0.25"/></svg>`,
+ close:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="black" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+ star:`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.2015 2.13577C6.45287 1.36213 7.54735 1.36213 7.79872 2.13577L8.50832 4.31969C8.62073 4.66566 8.94314 4.89991 9.30693 4.89991H11.6032C12.4167 4.89991 12.7549 5.94082 12.0968 6.41895L10.239 7.76869C9.94474 7.98252 9.82159 8.36153 9.93401 8.70751L10.6436 10.8914C10.895 11.6651 10.0095 12.3084 9.35143 11.8303L7.49368 10.4805C7.19937 10.2667 6.80085 10.2667 6.50654 10.4805L4.64879 11.8303C3.9907 12.3084 3.10524 11.6651 3.35661 10.8914L4.06621 8.70751C4.17862 8.36153 4.05547 7.98252 3.76117 7.76869L1.90341 6.41896C1.24532 5.94082 1.58354 4.89991 2.39698 4.89991H4.69329C5.05707 4.89991 5.37948 4.66567 5.4919 4.31969L6.2015 2.13577Z" fill="#FF6B00"/></svg>`,
+ tri:`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 9L2 3H10L6 9Z" fill="#5B5B5B"/></svg>`,
+ chevR:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="#858585" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ chev14:`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4.5 4L5 11" stroke="#5B5B5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ chevR16:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ chevS:`<svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M1 1l3 3 3-3" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ up:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="black" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ down:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="black" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ swipe:`<svg width="120" height="168" viewBox="0 0 120 168" fill="none"><rect x="38" width="44" height="160" rx="22" fill="url(#swipeGrad)"/><circle cx="60" cy="22" r="22" fill="#FF6B00"/><path d="M58.4998 52V29C58.4998 26.2 60.6998 24 63.4998 24C66.2998 24 68.4998 26.2 68.4998 29V44C68.4998 41.8 70.2998 40 72.4998 40C74.6998 40 76.4998 41.8 76.4998 44V46C76.4998 43.8 78.2998 42 80.4998 42C82.6998 42 84.4998 43.8 84.4998 46V48C84.4998 46.1 85.9998 44.6 87.6998 44.6C89.4998 44.6 90.8998 46.1 90.8998 48V62C90.8998 71.4 83.8998 79 74.4998 79H70.4998C64.9998 79 60.9998 76.5 57.9998 72.5L48.6998 60.2C47.0998 58 47.4998 55 49.6998 53.4C51.8998 51.8 54.8998 52.2 56.4998 54.4L58.4998 57V52Z" fill="white" stroke="black" stroke-linejoin="round"/><path d="M58.5 52V60M68.5 44V52M76.5 46V53M84.5 48V54" stroke="black" stroke-linecap="round"/><defs><linearGradient id="swipeGrad" x1="60" y1="0" x2="60" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6B00" stop-opacity="0.9"/><stop offset="1" stop-color="#FF6B00" stop-opacity="0"/></linearGradient></defs></svg>`,
+ playTri:(s=12)=>`<svg width="${s}" height="${s}" viewBox="0 0 10 12" fill="none"><path d="M1 1.2v9.6c0 .8.9 1.2 1.5.8l7-4.8c.6-.4.6-1.2 0-1.6l-7-4.8C1.9 0 1 .4 1 1.2z" fill="#fff"/></svg>`,
+};
+
+/* ===================== 라우팅/상태 ===================== */
+const app=document.getElementById("app");
+const state={tag:"전체",coachSeen:false,sheet:false};
+try{state.coachSeen=sessionStorage.getItem("coachSeen")==="1"}catch(e){}
+const isMO=()=>window.innerWidth<768;
+function route(){
+  const h=location.hash.replace(/^#\/?/,"");
+  if(h.startsWith("viewer/")) return {name:"viewer",id:h.slice(7)};
+  if(h==="list") return {name:"list"};
+  return {name:"main"};
+}
+const go=h=>{location.hash=h};
+function filtered(){return state.tag==="전체"?VIDEOS:VIDEOS.filter(v=>v.tags.includes(state.tag))}
+
+/* ===================== YouTube IFrame API ===================== */
+// API 로드 콜백이 이 스크립트보다 먼저 올 수 있어(캐시) YT.Player 존재 여부도 함께 본다
+let ytQ=[];const ytOK=()=>!!(window.YT&&window.YT.Player);
+window.onYouTubeIframeAPIReady=()=>{ytQ.splice(0).forEach(f=>f())};
+const whenYT=f=>{if(ytOK())return f();ytQ.push(f);const t=setInterval(()=>{if(ytOK()){clearInterval(t);ytQ.splice(0).forEach(g=>g())}},100)};
+
+/* 썸네일 호버 미리보기: 영상 중간 4초를 무음 루프 재생 (PC) */
+const preview={card:null,player:null,timer:null,iv:null,mid:0};
+function previewStop(){
+  clearTimeout(preview.timer);clearInterval(preview.iv);
+  if(preview.player){try{preview.player.destroy()}catch(e){}}
+  if(preview.card){const p=preview.card.querySelector(".prev");if(p){p.classList.remove("show");p.innerHTML=""}}
+  preview.card=null;preview.player=null;preview.iv=null;
+}
+function previewStart(card,id){
+  previewStop();preview.card=card;
+  preview.timer=setTimeout(()=>whenYT(()=>{
+    if(preview.card!==card)return;
+    const box=card.querySelector(".prev");
+    // iframe을 직접 만들어 autoplay 권한을 명시 (API가 만든 iframe은 브라우저 자동재생 정책에 막히는 경우가 있음)
+    const f=document.createElement("iframe");
+    f.allow="autoplay; encrypted-media; picture-in-picture";
+    f.src=`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+    box.appendChild(f);
+    const LOOP=4;preview.mid=0;
+    const kick=p=>{try{p.mute();p.playVideo()}catch(x){}};
+    preview.player=new YT.Player(f,{events:{
+      onReady:e=>{const p=e.target;const d=p.getDuration();preview.mid=d?Math.max(0,d/2-LOOP/2):0;if(d)p.seekTo(preview.mid,true);kick(p);
+        // 미시작 상태에 머물면 몇 번 더 재생 시도
+        let tries=0;const t=setInterval(()=>{if(preview.player!==p||tries++>5)return clearInterval(t);try{const s=p.getPlayerState();if(s===-1||s===5||s===2)kick(p);else clearInterval(t)}catch(x){clearInterval(t)}},600);},
+      onStateChange:e=>{
+        const p=e.target;
+        if(e.data===YT.PlayerState.PLAYING){
+          if(!preview.mid){const d=p.getDuration();if(d){preview.mid=Math.max(0,d/2-LOOP/2);p.seekTo(preview.mid,true)}}
+          box.classList.add("show");
+          clearInterval(preview.iv);
+          preview.iv=setInterval(()=>{try{if(p.getCurrentTime()>preview.mid+LOOP)p.seekTo(preview.mid,true)}catch(x){}},200);
+        }
+        if(e.data===YT.PlayerState.ENDED)p.seekTo(preview.mid,true);
+      }}});
+  }),300);
+}
+
+/* ===================== 공통 템플릿 ===================== */
+const chipsHtml=()=>`<div class="chips">${TAGS.map(([t,e])=>`<button class="chip${state.tag===t?" on":""}" data-tag="${t}"><span>${e}</span>${t}</button>`).join("")}</div>`;
+function cardHtml(v,mo){
+  const p=v.product?PRODUCTS[v.product]:null;
+  const pop=PRODUCTS[POPULAR[Math.max(0,VIDEOS.indexOf(v))%POPULAR.length]];
+  const tile=p?`<div class="ptile"><div class="pimg"><img src="${p.img}" alt=""></div><div class="pt"><span class="ell1">${p.name}</span><b>${won(p.price)}</b></div></div>`
+             :`<div class="ptile pop"><div class="pimg"><img src="${pop.img}" alt=""></div><div class="pt"><span class="ell1">${pop.name}</span><span class="more">인기상품 더보기 ${I.chev14}</span></div></div>`;
+  return `<article class="${mo?"mcard":"card"}" data-id="${v.id}">
+    <div class="thumb"><img src="${thumbUrl(v.id)}" alt="" loading="lazy" ${thumbFallback}>
+      ${mo?"":'<div class="prev"></div><div class="cap"></div>'}
+      ${v.hot?'<span class="badge">HOT</span>':""}<span class="play">${I.playTri(mo?9:12)}</span></div>
+    <div class="info"><div class="title ${mo?"ell2":"ell1"}">${esc(v.title)}</div>${tile}</div></article>`;
+}
+const skelHtml=mo=>`<article class="${mo?"mcard":"card"} skel" aria-hidden="true"><div class="thumb"></div><div class="info"><div class="line"></div><div class="ptile"><div class="pimg"></div><div class="pt" style="flex:1"><div class="line"></div><div class="line"></div></div></div></div></article>`;
+const badgesHtml=v=>`<div class="badges">${v.hot?'<span class="b hot">HOT</span>':""}<span class="b tag">${v.tags[0].split("·")[1]||v.tags[0]}</span></div>`;
+const rateHtml=p=>`<div class="rate">${I.star}<b>${p.rating.toFixed(2)}</b><span>(${p.reviews.toLocaleString()})</span></div>`;
+function prowHtml(p,small,withRate){
+  return `<div class="prow${small?"":" main"}"><div class="pimg${small?" s":""}"><img src="${p.img}" alt=""></div><div class="pt"><span class="nm ell1">${p.name}</span><span class="pr">${won(p.price)}</span>${withRate?rateHtml(p):""}</div><button aria-label="찜">${I.heart20}</button></div>`;
+}
+function panelBodyHtml(v){
+  const p=v.product?PRODUCTS[v.product]:null;
+  const pop=p?POPULAR:POPULAR_NOPROD;
+  return `<div>${badgesHtml(v)}<div class="vtitle">${esc(v.title)}</div></div>
+    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="https://www.marpple.com/kr" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
+    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="#list">더보기 ${I.chevR}</a></h3><div class="plist${p?"":" big"}">${pop.map(k=>prowHtml(PRODUCTS[k],true,!p)).join("")}</div></section>`;
+}
+function gnbHtml(){
+  return `<header class="gnb"><div class="in">
+    <div class="util"><div class="l"><span>마플</span><span>마플샵</span><span>만상사</span></div><div class="r"><span>한국어 &nbsp;▾</span><span>자주 묻는 질문</span><span>로그인</span><span>회원가입</span></div></div>
+    <div class="mast"><div class="l"><a href="#main" aria-label="마플 홈">${I.logo}</a><div class="search">${I.search}<span>1개부터 만드는 2,000여 개 커스텀 상품</span></div></div>
+      <div class="r"><div class="menu"><span class="on">${I.shorts}숏츠</span><span>${I.tmpl}1분컷 무료 템플릿</span><span>${I.howto}굿즈 제작 방법</span><span>${I.review}리뷰</span></div><div class="icons">${I.heart}${I.cart}${I.my}</div></div></div>
+    <div class="cat"><div class="l"><span>${I.menu}전체 상품</span><span>의류</span><span>패션잡화</span><span>팬굿즈</span><span>스티커</span><span>지류</span><span>문구/오피스</span><span>스마트폰</span><span>리빙</span><span>스포츠</span><span>쿠션/패브릭</span><span>키즈</span><span>반려동물</span><span>액자</span><span>디지털 가전</span></div><div class="r"><span>기업/웰컴 키트</span><i></i><span>대량 주문</span></div></div>
+  </div></header>`;
+}
+const moBar=(title,right)=>`<div class="mo-bar"><div class="l"><button onclick="history.back()" aria-label="뒤로">${I.back}</button><button aria-label="메뉴">${I.menu24}</button></div><div class="t">${title}</div><div class="r">${right}</div></div>`;
+
+/* ===================== 화면: 숏츠 목록 ===================== */
+const feed={loaded:0,busy:false,io:null};
+const feedItem=i=>{const f=filtered();return f[i%f.length]};
+function renderList(){
+  const mo=isMO();
+  if(mo){
+    app.innerHTML=`${moBar("숏츠",`<button aria-label="찜">${I.heart}</button><button aria-label="장바구니">${I.cart26}</button>`)}
+      <div class="mo-body">${chipsHtml()}<div class="mgrid"></div><div class="sentinel"></div></div>`;
+  }else{
+    app.innerHTML=`${gnbHtml()}<main class="pc-body"><div class="pc-head"><h1>숏츠 (267)</h1>${chipsHtml()}</div><div class="grid"></div><div class="sentinel"></div></main>`;
+  }
+  // 탭 클릭: 탭 그룹은 그대로 두고(스크롤 위치 유지) 그리드만 다시 그린다
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    state.tag=b.dataset.tag;
+    app.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b));
+    revealChip(b);renderGrid();window.scrollTo(0,0);
+  });
+  renderGrid();
+}
+// 화면에 다 보이는 탭은 스크롤 없이 선택 표시만 바뀐다. 잘려 있는 탭을 눌렀을 때만 왼쪽 끝(좌측 여백 자리)으로 붙이고, 뒤쪽 탭이 모자라면 끝까지만 간다
+function revealChip(b){
+  const sc=b.parentElement,pad=parseFloat(getComputedStyle(sc).paddingLeft||0);
+  const r=b.getBoundingClientRect(),s=sc.getBoundingClientRect();
+  if(r.left>=s.left&&r.right<=s.right)return;
+  sc.scrollTo({left:b.offsetLeft-pad,behavior:"smooth"});
+}
+function renderGrid(){
+  const mo=isMO(),grid=app.querySelector(".grid,.mgrid");
+  feed.loaded=0;feed.busy=false;if(feed.io){feed.io.disconnect();feed.io=null}
+  grid.innerHTML=Array.from({length:Math.min(PAGE,MAX_ITEMS)},(_,i)=>cardHtml(feedItem(i),mo)).join("");feed.loaded=PAGE;
+  bindList(grid);
+  // 아래로 스크롤하면 스켈레톤을 보여준 뒤 다음 10개를 붙인다
+  feed.io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))loadMore()},{rootMargin:"600px 0px"});
+  feed.io.observe(app.querySelector(".sentinel"));
+}
+function loadMore(){
+  if(feed.busy||feed.loaded>=MAX_ITEMS)return;
+  const mo=isMO(),grid=app.querySelector(".grid,.mgrid");if(!grid)return;
+  feed.busy=true;
+  const n=Math.min(PAGE,MAX_ITEMS-feed.loaded);
+  grid.insertAdjacentHTML("beforeend",Array.from({length:mo?4:5},()=>skelHtml(mo)).join(""));
+  setTimeout(()=>{
+    grid.querySelectorAll(".skel").forEach(s=>s.remove());
+    const frag=document.createElement("div");frag.innerHTML=Array.from({length:n},(_,i)=>cardHtml(feedItem(feed.loaded+i),mo)).join("");
+    const nodes=[...frag.children];nodes.forEach(c=>grid.appendChild(c));
+    feed.loaded+=n;feed.busy=false;bindList(grid,nodes);
+    if(feed.loaded>=MAX_ITEMS&&feed.io){feed.io.disconnect();return}
+    // 감지 지점이 아직 화면 근처면 콜백이 다시 오지 않으므로, 다시 관찰을 걸어 다음 로드가 이어지게 한다
+    const s=app.querySelector(".sentinel");if(feed.io&&s){feed.io.unobserve(s);feed.io.observe(s)}
+  },900);
+}
+function bindList(root,nodes){
+  (nodes||root.querySelectorAll(".card:not(.skel),.mcard:not(.skel)")).forEach(c=>{
+    c.onclick=()=>{previewStop();go("viewer/"+c.dataset.id)};
+    if(!isMO()){c.onmouseenter=()=>previewStart(c,c.dataset.id);c.onmouseleave=()=>{if(preview.card===c)previewStop()};}
+  });
+}
+
+/* ===================== 화면: PC 뷰어(모달) ===================== */
+const viewer={list:[],idx:0,player:null,io:null,hashLock:false};
+function renderViewerPC(id){
+  if(!app.querySelector(".pc-body"))renderList();
+  previewStop();
+  viewer.list=filtered().some(v=>v.id===id)?filtered():VIDEOS;
+  viewer.idx=Math.max(0,viewer.list.findIndex(v=>v.id===id));
+  const old=document.querySelector(".ov");if(old)old.remove();
+  const ov=document.createElement("div");ov.className="ov";
+  ov.innerHTML=`<div class="mwrap"><div class="modal">
+    <div class="vcol">${viewer.list.map((v,i)=>`<div class="slide" data-i="${i}"><img class="poster" src="${thumbUrl(v.id)}" alt="" ${thumbFallback}><div class="mount"></div></div>`).join("")}</div>
+    <aside class="panel"><div class="hd"><button aria-label="공유">${I.share}</button><button class="x" aria-label="닫기">${I.close}</button></div><div class="bd"></div></aside>
+    </div>
+    <div class="nav"><button class="prev" aria-label="이전 쇼츠">${I.up}</button><button class="next" aria-label="다음 쇼츠">${I.down}</button></div>
+  </div>`;
+  document.body.appendChild(ov);document.body.style.overflow="hidden";
+  const vcol=ov.querySelector(".vcol");
+  const close=()=>{destroyPlayer();ov.remove();document.body.style.overflow="";if(location.hash.startsWith("#viewer"))go("list")};
+  ov.querySelector(".x").onclick=close;
+  ov.addEventListener("click",e=>{if(e.target===ov)close()});
+  ov.querySelector(".prev").onclick=()=>scrollToSlide(viewer.idx-1);
+  ov.querySelector(".next").onclick=()=>scrollToSlide(viewer.idx+1);
+  // 패널/배경 위에서 휠을 굴려도 영상이 넘어가도록
+  let wl=0;ov.addEventListener("wheel",e=>{if(vcol.contains(e.target))return;const now=Date.now();if(now-wl<700)return;wl=now;scrollToSlide(viewer.idx+(e.deltaY>0?1:-1))},{passive:true});
+  document.onkeydown=e=>{if(e.key==="Escape")close();if(e.key==="ArrowDown")scrollToSlide(viewer.idx+1);if(e.key==="ArrowUp")scrollToSlide(viewer.idx-1)};
+  viewer.io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting&&en.intersectionRatio>.6)activate(+en.target.dataset.i)})},{root:vcol,threshold:[.6]});
+  vcol.querySelectorAll(".slide").forEach(s=>viewer.io.observe(s));
+  vcol.scrollTop=viewer.idx*vcol.clientHeight;
+  activate(viewer.idx,true);
+  function scrollToSlide(i){i=Math.max(0,Math.min(viewer.list.length-1,i));vcol.scrollTo({top:i*vcol.clientHeight,behavior:"smooth"})}
+  function activate(i,force){
+    if(i===viewer.idx&&!force&&viewer.player)return;
+    viewer.idx=i;const v=viewer.list[i];
+    ov.querySelector(".bd").innerHTML=panelBodyHtml(v);
+    ov.querySelector(".prev").disabled=i===0;ov.querySelector(".next").disabled=i===viewer.list.length-1;
+    history.replaceState(null,"","#viewer/"+v.id);
+    mountPlayer(vcol.children[i].querySelector(".mount"),v.id);
+  }
+}
+function destroyPlayer(){if(viewer.player){try{viewer.player.destroy()}catch(e){}viewer.player=null}document.querySelectorAll(".mount").forEach(m=>m.innerHTML="")}
+function mountPlayer(mount,id){
+  destroyPlayer();mount.innerHTML='<div></div>';
+  whenYT(()=>{if(!mount.isConnected)return;viewer.player=new YT.Player(mount.firstChild,{videoId:id,playerVars:{autoplay:1,controls:1,rel:0,modestbranding:1,playsinline:1,loop:1,playlist:id},events:{onReady:e=>e.target.playVideo()}})});
+}
+
+/* ===================== 화면: MO 뷰어 ===================== */
+function renderViewerMO(id){
+  viewer.list=filtered().some(v=>v.id===id)?filtered():VIDEOS;
+  viewer.idx=Math.max(0,viewer.list.findIndex(v=>v.id===id));
+  app.innerHTML=`<div class="mv">${moBar("숏츠",`<button aria-label="검색">${I.search24}</button><button aria-label="공유">${I.share}</button>`)}
+    <div class="msnap">${viewer.list.map((v,i)=>{const p=v.product?PRODUCTS[v.product]:null;const pop=p?POPULAR:POPULAR_NOPROD;
+      return `<section class="mslide" data-i="${i}">
+        <div class="mtb">${badgesHtml(v)}<div class="vt ell1">${esc(v.title)}</div></div>
+        <div class="mvideo"><img class="poster" src="${thumbUrl(v.id)}" alt="" ${thumbFallback}><div class="mount"></div></div>
+        <div class="strip"><div class="sc">${p?pcard(p):""}${pop.map(k=>pcard(PRODUCTS[k])).join("")}</div><button class="open" aria-label="상품 더보기"><i>${I.chevS}</i></button></div>
+      </section>`}).join("")}</div>
+    ${state.coachSeen?"":`<div class="coach"><div class="in"><div class="hand">${I.swipe}</div><p><em>위아래</em>로 밀어서<br>다음 쇼츠를 볼 수 있어요</p><button class="ok">확인했어요</button></div></div>`}
+  </div>`;
+  const snap=app.querySelector(".msnap");
+  // 코치마크가 떠 있는 동안은 재생하지 않고, "확인했어요"를 누르면 재생 시작
+  const coach=app.querySelector(".coach");if(coach){coach.querySelector(".ok").onclick=()=>{coach.remove();state.coachSeen=true;try{sessionStorage.setItem("coachSeen","1")}catch(e){} mountPlayer(snap.children[viewer.idx].querySelector(".mount"),viewer.list[viewer.idx].id);}}
+  app.querySelectorAll(".open").forEach(b=>b.onclick=()=>openSheet(viewer.list[viewer.idx]));
+  viewer.io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting&&en.intersectionRatio>.6)activate(+en.target.dataset.i)})},{root:snap,threshold:[.6]});
+  snap.querySelectorAll(".mslide").forEach(s=>viewer.io.observe(s));
+  snap.scrollTop=viewer.idx*snap.clientHeight;
+  activate(viewer.idx,true);
+  function activate(i,force){
+    if(i===viewer.idx&&!force&&viewer.player)return;
+    viewer.idx=i;const v=viewer.list[i];
+    history.replaceState(null,"","#viewer/"+v.id);
+    if(!app.querySelector(".coach"))mountPlayer(snap.children[i].querySelector(".mount"),v.id);
+  }
+}
+const pcard=p=>`<div class="pcard"><div class="pimg"><img src="${p.img}" alt=""></div><div class="pt"><span class="ell1">${p.name}</span><b>${won(p.price)}</b></div></div>`;
+function openSheet(v){
+  const p=v.product?PRODUCTS[v.product]:null;const pop=p?POPULAR:POPULAR_NOPROD;
+  const dim=document.createElement("div");dim.className="dim";
+  const sh=document.createElement("div");sh.className="sheet";
+  sh.innerHTML=`<div class="hdl"></div><div class="bd">
+    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="https://www.marpple.com/kr" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
+    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="#list">더보기 ${I.chevR}</a></h3><div class="plist">${pop.map(k=>prowHtml(PRODUCTS[k],true,true)).join("")}</div></section></div>`;
+  const close=()=>{dim.remove();sh.remove()};dim.onclick=close;
+  document.body.append(dim,sh);
+}
+
+/* ===================== 화면: 메인 ===================== */
+function renderMain(){
+  if(isMO()){
+    app.innerHTML=`<div class="main-canvas mo" style="width:375px">
+      <div class="mimg" style="height:774px;background-image:url(assets/main_mo.png);background-size:375px auto"></div>
+      <section class="main-sec mo" style="width:375px;height:auto;gap:16px;padding:0">
+        <div class="th" style="padding:0 16px"><h2 style="font-size:20px">숏츠로 만나는 마플 굿즈</h2><a href="#list">더 보기 ${I.chevR16}</a></div>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding:0 16px">${VIDEOS.slice(0,6).map(v=>`<div style="flex:none;width:164px">${cardHtml(v,true)}</div>`).join("")}</div>
+      </section>
+      <div class="mimg" style="height:${4065-1207}px;background-image:url(assets/main_mo.png);background-size:375px auto;background-position:0 -1207px;margin-top:40px"></div></div>`;
+  }else{
+    app.innerHTML=`<div class="main-canvas" style="width:1920px">
+      <div class="mimg" style="height:965px;background-image:url(assets/main_pc.png);background-size:1920px auto"></div>
+      <section class="main-sec"><div class="th"><h2>숏츠로 만나는 마플 굿즈</h2><a href="#list">더 보기 ${I.chevR16}</a></div><div class="row">${VIDEOS.slice(0,5).map(v=>cardHtml(v,false)).join("")}</div></section>
+      <div class="mimg" style="height:${4074-1681}px;background-image:url(assets/main_pc.png);background-size:1920px auto;background-position:0 -1681px;margin-top:80px"></div></div>`;
+  }
+  fitMain();bindList();
+}
+function fitMain(){const c=app.querySelector(".main-canvas");if(!c)return;const w=isMO()?375:1920;c.style.zoom=Math.min(1,window.innerWidth/w);}
+
+/* ===================== 렌더 ===================== */
+let lastDevice=isMO();
+function render(){
+  const r=route();
+  document.querySelectorAll(".ov,.dim,.sheet").forEach(n=>n.remove());document.body.style.overflow="";document.onkeydown=null;
+  if(viewer.io){viewer.io.disconnect();viewer.io=null}
+  destroyPlayer();previewStop();
+  if(r.name==="main")renderMain();
+  else if(r.name==="list")renderList();
+  else if(isMO())renderViewerMO(r.id);
+  else renderViewerPC(r.id);
+  window.scrollTo(0,0);
+  document.getElementById("devnav").innerHTML=[["main","메인"],["list","숏츠 목록"],["viewer/"+VIDEOS[0].id,"숏츠 뷰어"]].map(([h,t])=>`<a href="#${h}" class="${r.name===h.split("/")[0]?"on":""}">${t}</a>`).join("");
+}
+window.addEventListener("hashchange",render);
+window.addEventListener("resize",()=>{fitMain();if(lastDevice!==isMO()){lastDevice=isMO();render()}});
+render();
+</script>
+</body>
+</html>
