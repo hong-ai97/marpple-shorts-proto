@@ -68,7 +68,7 @@ svg{display:block}
 .ptile{display:flex;align-items:center;gap:10px;min-width:0}
 /* 사진 배경(흰색/연회색)이 제각각이라, 타일 회색보다 밝은 부분은 타일 색으로 눌러 톤을 통일 */
 .ptile .pimg{width:60px;height:60px;border-radius:8px;background:var(--ph);overflow:hidden;flex:none}.ptile .pimg img{width:100%;height:100%;object-fit:cover}
-.ptile .pimg img[src*="/p_"]{object-fit:contain;mix-blend-mode:darken}
+.ptile .pimg img[src*="/p_"],.ptile .pimg img[src*="/m_"]{object-fit:contain;mix-blend-mode:darken}
 .ptile .pt{display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1;min-width:0}.ptile .pt b{font-weight:700}
 .grid{grid-template-columns:repeat(5,minmax(0,1fr))}.card{min-width:0}
 
@@ -91,6 +91,8 @@ svg{display:block}
 .sec h3{margin:0 0 16px;font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
 .sec h3 .more{font-size:12px;font-weight:500;color:var(--g2);display:flex;align-items:center;gap:2px}
 .prow{display:flex;align-items:center;gap:14px}
+.prow>.go{display:flex;align-items:center;gap:14px;flex:1;min-width:0}.sheet .prow>.go{gap:16px}
+.like.on svg path{fill:#FF6B00}
 .prow .pimg{flex:none;width:72px;height:90px;border-radius:6px;background:var(--ph);overflow:hidden}.prow .pimg.s{width:56px;height:70px;border-radius:4px}
 .prow .pimg img{width:100%;height:100%;object-fit:cover}
 .prow .pt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -191,15 +193,19 @@ svg{display:block}
 <script>
 /* ===================== 데이터 ===================== */
 const TAGS=[["전체","👀"],["가족·반려동물","❤️"],["커플·우정","👩‍❤️‍👨"],["스포츠","⚾️"],["여행","✈️"],["덕질","🔥"],["단체·기업","🏢"],["선물","🎁"]];
+// 마플 실제 상품(상세 URL·대표 이미지·가격·평점은 marpple.com 의류 목록 기준, 2026-11-17)
+const MP=id=>`https://www.marpple.com/kr/product/detail?bp_id=${id}`;
+const BEST_URL="https://www.marpple.com/kr/best-products";
 const PRODUCTS={
-  card_grey:{name:"비캔버스 피그먼트 오버핏 티셔츠",price:7900,img:"assets/c_tee.png",rating:4.5,reviews:3272},
-  card_blue:{name:"비캔버스 피그먼트 오버핏 티셔츠",price:13000,img:"assets/c_tee.png",rating:4.5,reviews:1068},
-  tee_yellow:{name:"17수 라운드 티셔츠(남여공용)",price:7900,img:"assets/p_tee_yellow.png",rating:4.5,reviews:3272},
-  tee_white:{name:"2000 오리지널 티셔츠",price:9000,img:"assets/p_tee_white.png",rating:4.5,reviews:3931},
-  hoodie_navy:{name:"데일리 오버핏 2WAY 후드집업",price:33500,img:"assets/p_hoodie_navy.png",rating:4.5,reviews:2000},
-  tee_grey:{name:"스판텍스 라운드 티셔츠(남여공용)",price:9000,img:"assets/p_tee_grey.png",rating:4.5,reviews:1068},
+  card_grey:{name:"비캔버스 코튼 터치 기능성 오버핏 티셔츠",price:7900,img:"assets/m_8830.jpg",rating:4.99,reviews:75,url:MP(8830)},
+  card_blue:{name:"프린트스타 17수 오버핏 티셔츠",price:9900,img:"assets/m_4301.jpg",rating:4.96,reviews:756,url:MP(4301)},
+  tee_yellow:{name:"프린트스타 17수 라운드 티셔츠(남녀공용)",price:7900,img:"assets/m_4112.jpg",rating:4.97,reviews:3277,url:MP(4112)},
+  tee_white:{name:"길단 2000 오리지널 티셔츠",price:9000,img:"assets/m_3179.jpg",rating:4.97,reviews:3932,url:MP(3179)},
+  hoodie_navy:{name:"비캔버스 데일리 오버핏 2WAY 후드집업",price:33500,img:"assets/m_7819.jpg",rating:4.95,reviews:42,url:MP(7819)},
+  tee_grey:{name:"스판텍스 PK 티셔츠(남녀공용)",price:14900,img:"assets/m_3156.jpg",rating:4.95,reviews:38,url:MP(3156)},
+  tee_long:{name:"프린트스타 14수 헤비 라운드 긴팔 티셔츠",price:12000,img:"assets/m_7927.jpg",rating:4.76,reviews:21,url:MP(7927)},
 };
-const POPULAR=["tee_white","hoodie_navy","tee_grey","hoodie_navy"];
+const POPULAR=["tee_white","hoodie_navy","tee_grey","tee_long"];
 const POPULAR_NOPROD=["tee_white","hoodie_navy","tee_yellow","tee_grey"];
 // 영상 속 상품은 0개 또는 1개 (product:null = 없음)
 const V=(id,title,tags,product,hot)=>({id,title,tags,product,hot:!!hot});
@@ -246,6 +252,7 @@ const I={
  howto:`<svg width="20" height="20" viewBox="0 0 17 16" fill="none"><path d="M7.68343 11.85H4.45426H2.93343C1.97614 11.85 1.2001 11.0739 1.2001 10.1166V2.93331C1.2001 1.97602 1.97614 1.19998 2.93343 1.19998H4.45426M12.1626 1.19998H13.6834C14.6407 1.19998 15.4168 1.97602 15.4168 2.93331V9.51664" stroke="black" stroke-width="1.2" stroke-linecap="round"/><path d="M16.0167 8.30835V9.51668C16.0167 10.8053 14.972 11.85 13.6833 11.85H12.2667L8.93335 15.1833" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
  review:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="black" stroke-width="1.3"/><circle cx="10" cy="11" r="3" stroke="black" stroke-width="1.3"/><path d="M7 5l1-2h4l1 2" stroke="black" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
  heart:`<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 23.5L5.03774 14.6469C4.80627 14.4509 4.5922 14.2376 4.39479 14.008C3.93221 13.4713 3.5674 12.8491 3.32666 12.1676C3.11481 11.5691 3 10.9269 3 10.2573C3 7.08292 5.58181 4.5 8.75694 4.5C11.085 4.5 13.0946 5.89072 13.9998 7.88439C14.9054 5.89072 16.9146 4.5 19.2438 4.5C22.4174 4.5 25 7.08292 25 10.2573C25 10.9421 24.8796 11.5995 24.6596 12.2091C24.3696 13.0102 23.9071 13.7284 23.3167 14.3198L17.25 20.39" stroke="black" stroke-width="1.28571" stroke-linecap="round"/></svg>`,
+ heartOn:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13.7453 3.21423C16.0122 3.21423 17.8569 5.05918 17.8569 7.3266C17.8569 7.81574 17.7709 8.28531 17.6137 8.72076C17.4066 9.29297 17.0762 9.80592 16.6545 10.2284L12.3211 14.5642L9.99972 16.7857L3.59811 10.462C3.43277 10.3221 3.27986 10.1697 3.13886 10.0057C2.80844 9.62233 2.54786 9.17789 2.37591 8.69113C2.22459 8.26362 2.14258 7.8049 2.14258 7.3266C2.14258 5.05918 3.98673 3.21423 6.25468 3.21423C7.91761 3.21423 9.35304 4.2076 9.99959 5.63165C10.6464 4.2076 12.0816 3.21423 13.7453 3.21423Z" fill="#FF6B00"/></svg>`,
  heart20:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10.0002 16.7857L3.5986 10.462C3.43326 10.3221 3.28035 10.1697 3.13935 10.0057C2.80893 9.62233 2.54835 9.17789 2.3764 8.69113C2.22508 8.26362 2.14307 7.8049 2.14307 7.3266C2.14307 5.05918 3.98722 3.21423 6.25517 3.21423C7.9181 3.21423 9.35353 4.2076 10.0001 5.63165C10.6469 4.2076 12.0821 3.21423 13.7458 3.21423C16.0127 3.21423 17.8574 5.05918 17.8574 7.3266C17.8574 7.81574 17.7714 8.28531 17.6142 8.72075C17.4071 9.29297 17.0767 9.80592 16.655 10.2284L12.3216 14.5642" stroke="black" stroke-width="1.25" stroke-linecap="round"/></svg>`,
  cart:`<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M18.5 8H21C22.1046 8 23 8.89543 23 10V23C23 24.1046 22.1046 25 21 25H20.75H18.5H14H7C5.89543 25 5 24.1046 5 23V10C5 8.89543 5.89543 8 7 8H9H14" stroke="black" stroke-width="1.29" stroke-linecap="round"/><path d="M18.5 8V7.5C18.5 5.01472 16.4853 3 14 3C11.5147 3 9.5 5.01472 9.5 7.5V8" stroke="black" stroke-width="1.29" stroke-linecap="round"/></svg>`,
  cart26:`<svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M17.1788 7.42859H19.5002C20.5259 7.42859 21.3574 8.26006 21.3574 9.28573V21.2143C21.3574 22.3189 20.4619 23.2143 19.3574 23.2143H6.64307C5.5385 23.2143 4.64307 22.3189 4.64307 21.2143V9.42859C4.64307 8.32402 5.5385 7.42859 6.64307 7.42859H8.35735H13.0002" stroke="black" stroke-width="1.5" stroke-linecap="round"/><path d="M17.1784 7.42862V6.96434C17.1784 4.65658 15.3076 2.78577 12.9999 2.78577C10.6921 2.78577 8.82129 4.65658 8.82129 6.96434V7.42862" stroke="black" stroke-width="1.5" stroke-linecap="round"/></svg>`,
@@ -341,14 +348,16 @@ const skelHtml=mo=>`<article class="${mo?"mcard":"card"} skel" aria-hidden="true
 const badgesHtml=v=>`<div class="badges">${v.hot?'<span class="b hot">HOT</span>':""}<span class="b tag">${v.tags[0].split("·")[1]||v.tags[0]}</span></div>`;
 const rateHtml=p=>`<div class="rate">${I.star}<b>${p.rating.toFixed(2)}</b><span>(${p.reviews.toLocaleString()})</span></div>`;
 function prowHtml(p,small,withRate){
-  return `<div class="prow${small?"":" main"}"><div class="pimg${small?" s":""}"><img src="${p.img}" alt=""></div><div class="pt"><span class="nm ell1">${p.name}</span><span class="pr">${won(p.price)}</span>${withRate?rateHtml(p):""}</div><button aria-label="찜">${I.heart20}</button></div>`;
+  return `<div class="prow${small?"":" main"}"><a class="go" href="${p.url}" target="_blank" rel="noopener"><div class="pimg${small?" s":""}"><img src="${p.img}" alt=""></div><div class="pt"><span class="nm ell1">${p.name}</span><span class="pr">${won(p.price)}</span>${withRate?rateHtml(p):""}</div></a><button class="like" aria-label="찜" aria-pressed="false">${I.heart20}</button></div>`;
 }
+// 하트: 누르면 채워진 주황 하트로, 다시 누르면 선 하트로
+document.addEventListener("click",e=>{const b=e.target.closest(".like");if(!b)return;e.preventDefault();e.stopPropagation();const on=!b.classList.contains("on");b.classList.toggle("on",on);b.setAttribute("aria-pressed",on);b.innerHTML=on?I.heartOn:I.heart20;});
 function panelBodyHtml(v){
   const p=v.product?PRODUCTS[v.product]:null;
   const pop=p?POPULAR:POPULAR_NOPROD;
   return `<div>${badgesHtml(v)}<div class="vtitle">${esc(v.title)}</div></div>
-    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="https://www.marpple.com/kr" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
-    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="#list">더보기 ${I.chevR}</a></h3><div class="plist${p?"":" big"}">${pop.map(k=>prowHtml(PRODUCTS[k],true,!p)).join("")}</div></section>`;
+    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="${p.url}" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
+    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="${BEST_URL}" target="_blank" rel="noopener">더보기 ${I.chevR}</a></h3><div class="plist${p?"":" big"}">${pop.map(k=>prowHtml(PRODUCTS[k],true,!p)).join("")}</div></section>`;
 }
 function gnbHtml(){
   return `<header class="gnb"><div class="in">
@@ -491,14 +500,14 @@ function renderViewerMO(id){
     if(!app.querySelector(".coach"))mountPlayer(snap.children[i].querySelector(".mount"),v.id);
   }
 }
-const pcard=p=>`<div class="pcard"><div class="pimg"><img src="${p.img}" alt=""></div><div class="pt"><span class="ell1">${p.name}</span><b>${won(p.price)}</b></div></div>`;
+const pcard=p=>`<a class="pcard" href="${p.url}" target="_blank" rel="noopener"><div class="pimg"><img src="${p.img}" alt=""></div><div class="pt"><span class="ell1">${p.name}</span><b>${won(p.price)}</b></div></a>`;
 function openSheet(v){
   const p=v.product?PRODUCTS[v.product]:null;const pop=p?POPULAR:POPULAR_NOPROD;
   const dim=document.createElement("div");dim.className="dim";
   const sh=document.createElement("div");sh.className="sheet";
   sh.innerHTML=`<div class="hdl"></div><div class="bd">
-    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="https://www.marpple.com/kr" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
-    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="#list">더보기 ${I.chevR}</a></h3><div class="plist">${pop.map(k=>prowHtml(PRODUCTS[k],true,true)).join("")}</div></section></div>`;
+    ${p?`<section class="sec"><h3>이 영상 속 상품</h3>${prowHtml(p,false,true)}<a class="cta" href="${p.url}" target="_blank" rel="noopener">내 디자인으로 만들어보기</a></section>`:""}
+    <section class="sec"><h3>이런 상품도 인기있어요🔥<a class="more" href="${BEST_URL}" target="_blank" rel="noopener">더보기 ${I.chevR}</a></h3><div class="plist">${pop.map(k=>prowHtml(PRODUCTS[k],true,true)).join("")}</div></section></div>`;
   const close=()=>{dim.remove();sh.remove()};dim.onclick=close;
   document.body.append(dim,sh);
 }
